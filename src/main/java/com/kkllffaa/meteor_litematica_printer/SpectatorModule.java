@@ -21,6 +21,7 @@ public class SpectatorModule extends Module {
 
     @Override
     public void onActivate() {
+        // In 1.21.4, we check world and player like this
         if (mc.world == null || mc.player == null) return;
 
         PlayerEntity target = null;

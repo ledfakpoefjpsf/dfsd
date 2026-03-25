@@ -8,13 +8,13 @@ import org.slf4j.LoggerFactory;
 
 public class Addon extends MeteorAddon {
     public static final Logger LOG = LoggerFactory.getLogger("Meteor Litematica Printer");
-    
-    // Simplest version to ensure compilation
     public static final Category CATEGORY = new Category("Printer");
 
     @Override
     public void onInitialize() {
         LOG.info("Initializing Meteor Litematica Printer with Spectator Plus");
+        
+        // This adds the modules to your Right-Shift menu
         Modules.get().add(new Printer());
         Modules.get().add(new SpectatorModule());
     }

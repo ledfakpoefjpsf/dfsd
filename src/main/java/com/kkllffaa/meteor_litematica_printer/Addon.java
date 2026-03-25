@@ -7,15 +7,19 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 public class Addon extends MeteorAddon {
-    public static final Logger LOG = LoggerFactory.getLogger("Meteor Litematica Printer");
-    public static final Category CATEGORY = new Category("Printer");
+    public static final Logger LOG = LoggerFactory.getLogger("Spectator Plus");
+    
+    // This creates the category in your ClickGUI
+    public static final Category CATEGORY = new Category("Custom");
 
     @Override
     public void onInitialize() {
-        LOG.info("Initializing Meteor Litematica Printer with Spectator Plus");
+        LOG.info("Initializing Spectator Plus...");
         
-        // This adds the modules to your Right-Shift menu
-        Modules.get().add(new Printer());
+        // We COMMENTED OUT the printer so it doesn't cause errors
+        // Modules.get().add(new Printer());
+        
+        // We only add your new Spectator module
         Modules.get().add(new SpectatorModule());
     }
 

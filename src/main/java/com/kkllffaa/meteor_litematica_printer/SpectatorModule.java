@@ -21,13 +21,12 @@ public class SpectatorModule extends Module {
 
     @Override
     public void onActivate() {
-        // In Official Java Mappings, we use 'level' instead of 'world'
         if (mc.level == null || mc.player == null) return;
 
         Player target = null;
         for (Player player : mc.level.players()) {
-            // FIX: Using .getScoreboardName() or .getName().getString() is safer in 1.21.4
-            if (player.getGameProfile().getName().equalsIgnoreCase(playerName.get())) {
+            // In Mojang Official Mappings, it is .name() NOT .getName()
+            if (player.getGameProfile().name().equalsIgnoreCase(playerName.get())) {
                 target = player;
                 break;
             }
@@ -35,7 +34,8 @@ public class SpectatorModule extends Module {
 
         if (target != null) {
             mc.setCameraEntity(target);
-            info("Spectating: " + target.getGameProfile().getName());
+            // Changed to .name() here as well
+            info("Spectating: " + target.getGameProfile().name());
         } else {
             error("Player not found nearby!");
             this.toggle();

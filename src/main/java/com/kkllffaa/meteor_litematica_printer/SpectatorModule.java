@@ -3,7 +3,8 @@ package com.kkllffaa.meteor_litematica_printer;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.settings.*;
-import net.minecraft.entity.player.PlayerEntity;
+import net.minecraft.world.entity.player.Player; // Official Mapping name for PlayerEntity
+import java.util.stream.StreamSupport;
 
 public class SpectatorModule extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -21,11 +22,11 @@ public class SpectatorModule extends Module {
 
     @Override
     public void onActivate() {
-        if (mc.world == null || mc.player == null) return;
+        // In official mappings, world and player are often accessed via getter methods
+        if (mc.level == null || mc.player == null) return;
 
-        PlayerEntity target = null;
-        // Yarn uses .getPlayers()
-        for (PlayerEntity player : mc.world.getPlayers()) {
+        Player target = null;
+        for (Player player : mc.level.players()) {
             if (player.getGameProfile().getName().equalsIgnoreCase(playerName.get())) {
                 target = player;
                 break;

@@ -9,18 +9,21 @@ import org.slf4j.LoggerFactory;
 public class Addon extends MeteorAddon {
     public static final Logger LOG = LoggerFactory.getLogger("Spectator Plus");
     
-    // This is your "Shelf"
+    // Define the category here
     public static final Category CATEGORY = new Category("Custom");
 
     @Override
     public void onInitialize() {
         LOG.info("Initializing Spectator Plus Addon...");
-
-        // FIX: This line registers the category so Meteor knows it exists!
-        Modules.registerCategory(CATEGORY);
         
-        // Now we can safely add the module to that category
+        // Only add the module here
         Modules.get().add(new SpectatorModule());
+    }
+
+    // FIX: This is the specific "Callback" the error message is asking for
+    @Override
+    public void onRegisterCategories() {
+        Modules.registerCategory(CATEGORY);
     }
 
     @Override

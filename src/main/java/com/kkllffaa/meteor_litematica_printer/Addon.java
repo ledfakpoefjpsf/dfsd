@@ -19,9 +19,9 @@ public class Addon extends MeteorAddon {
     public void onInitialize() {
         LOG.info("Initializing Spectator Plus Addon...");
 
-        // Add modules
+        // Add your modules
         Modules.get().add(new SpectatorModule());
-        Modules.get().add(new CreativeSurvivalModule()); // <-- replaced BowSlayer
+        Modules.get().add(new CreativeSurvivalModule());
     }
 
     @Override

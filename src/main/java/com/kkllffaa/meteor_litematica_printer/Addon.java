@@ -6,8 +6,9 @@ import meteordevelopment.meteorclient.systems.modules.Modules;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+// Import your modules
 import com.kkllffaa.meteor_litematica_printer.SpectatorModule;
-import com.kkllffaa.meteor_litematica_printer.BowSlayer;
+import com.kkllffaa.meteor_litematica_printer.CreativeSurvivalModule;
 
 public class Addon extends MeteorAddon {
     public static final Logger LOG = LoggerFactory.getLogger("Spectator Plus");
@@ -18,8 +19,9 @@ public class Addon extends MeteorAddon {
     public void onInitialize() {
         LOG.info("Initializing Spectator Plus Addon...");
 
+        // Add modules
         Modules.get().add(new SpectatorModule());
-        Modules.get().add(new BowSlayer());
+        Modules.get().add(new CreativeSurvivalModule()); // <-- replaced BowSlayer
     }
 
     @Override

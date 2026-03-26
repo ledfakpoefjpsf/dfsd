@@ -1,17 +1,18 @@
 package com.kkllffaa.meteor_litematica_printer;
 
 import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.settings.KeyBindSetting;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.player.ChatUtils;
-import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.client.option.KeyBinding;
-import net.minecraft.client.util.InputUtil;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.item.Items;
-import net.minecraft.enchantment.EnchantmentHelper;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
+import net.minecraft.world.item.Items;
+import net.minecraft.world.item.enchantment.EnchantmentHelper;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.client.Minecraft;
+import net.minecraft.client.KeyMapping;
 import org.lwjgl.glfw.GLFW;
+
+import java.util.Map;
 
 public class CreativeSurvivalModule extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -23,17 +24,17 @@ public class CreativeSurvivalModule extends Module {
         .build()
     );
 
-    private final Setting<KeyBinding> spawnItemKey = sgGeneral.add(new KeyBindSetting.Builder()
+    private final Setting<KeyMapping> spawnItemKey = sgGeneral.add(new KeyBindingSetting.Builder()
         .name("spawn-key")
         .description("Key to spawn the item.")
-        .defaultValue(new KeyBinding("Spawn Item", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_K, "CreativeSurvival"))
+        .defaultValue(new KeyMapping("Spawn Item", GLFW.GLFW_KEY_K, "CreativeSurvival"))
         .build()
     );
 
-    private final Setting<KeyBinding> enchantKey = sgGeneral.add(new KeyBindSetting.Builder()
+    private final Setting<KeyMapping> enchantKey = sgGeneral.add(new KeyBindingSetting.Builder()
         .name("enchant-key")
         .description("Key to enchant held item.")
-        .defaultValue(new KeyBinding("Enchant Item", InputUtil.Type.KEYSYM, GLFW.GLFW_KEY_E, "CreativeSurvival"))
+        .defaultValue(new KeyMapping("Enchant Item", GLFW.GLFW_KEY_E, "CreativeSurvival"))
         .build()
     );
 
@@ -43,29 +44,24 @@ public class CreativeSurvivalModule extends Module {
 
     @Override
     public void onTick() {
-        ClientPlayerEntity player = mc.player;
+        LocalPlayer player = Minecraft.getInstance().player;
         if (player == null) return;
 
         // Spawn item
-        if (spawnItemKey.get().wasPressed()) {
+        if (spawnItemKey.get().isDown()) {
             ItemStack stack = new ItemStack(itemToSpawn.get(), 64);
-            if (player.getInventory().insertStack(stack)) {
-                ChatUtils.info("Spawned 64 " + itemToSpawn.get().getName().getString());
+            if (player.getInventory().add(stack)) {
+                ChatUtils.info("Spawned 64 " + stack.getHoverName().getString());
             }
         }
 
-        // Enchant held item safely
-        if (enchantKey.get().wasPressed()) {
-            ItemStack stack = player.getMainHandStack();
+        // Enchant held item
+        if (enchantKey.get().isDown()) {
+            ItemStack stack = player.getMainHandItem();
             if (!stack.isEmpty()) {
-                var enchants = EnchantmentHelper.get(stack);
-                if (!enchants.isEmpty()) {
-                    var firstEnchant = enchants.keySet().iterator().next();
-                    EnchantmentHelper.setLevel(firstEnchant, stack, 5);
-                    ChatUtils.info("Enchanted " + stack.getName().getString());
-                } else {
-                    ChatUtils.info("No enchantments available for this item.");
-                }
+                var firstEnchant = EnchantmentHelper.getEnchantments(stack).keySet().iterator().next();
+                EnchantmentHelper.setEnchantments(Map.of(firstEnchant, 5), stack);
+                ChatUtils.info("Enchanted " + stack.getHoverName().getString());
             }
         }
     }

@@ -1,25 +1,27 @@
 {
   "schemaVersion": 1,
-  "name": "Meteor Litematica Printer",
-  "id": "meteor-litematica-printer",
+  "id": "meteor-spectator-plus",
   "version": "${version}",
-  "description": "Fast printer for litematica made with meteor.",
+  "name": "Spectator Plus",
+  "description": "An addon for Meteor Client to watch other players.",
   "authors": [
-    "kkllffaa"
+    "leste"
   ],
   "contact": {
     "repo": "https://github.com/kkllffaa/meteor-litematica-printer"
   },
-  "icon": "assets/meteor_litematica_printer/icon.png",
-  "environment": "client",
+  "license": "MIT",
+  "icon": "assets/meteor-litematica-printer/icon.png",
+  "environment": "*",
   "entrypoints": {
     "meteor": [
       "com.kkllffaa.meteor_litematica_printer.Addon"
     ]
   },
   "depends": {
+    "fabricloader": ">=0.15.0",
+    "minecraft": "~1.21.4",
     "java": ">=21",
-    "minecraft": ">=${mc_version}",
     "meteor-client": "*"
   }
 }

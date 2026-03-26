@@ -16,7 +16,7 @@ public class SpectatorModule extends Module {
     }
 
     @EventHandler
-    public void onRenderTooltip(RenderTooltipEvent event) {
+    private void onRenderTooltip(RenderTooltipEvent event) {
         GuiGraphics graphics = event.graphics;
         ClientPlayerEntity player = mc.player;
         if (player == null) return;

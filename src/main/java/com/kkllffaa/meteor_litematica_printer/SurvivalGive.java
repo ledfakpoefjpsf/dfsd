@@ -6,8 +6,6 @@ import meteordevelopment.meteorclient.systems.modules.Module;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.ResourceLocation;
-import net.minecraft.world.item.Item;
-import net.minecraft.world.item.ItemStack;
 
 public class SurvivalGive extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -34,7 +32,7 @@ public class SurvivalGive extends Module {
 
     @Override
     public void onActivate() {
-        if (mc.player == null) return;
+        if (mc.player == null || mc.getConnection() == null) return;
 
         ResourceLocation id = ResourceLocation.tryParse(itemSetting.get());
 
@@ -44,16 +42,11 @@ public class SurvivalGive extends Module {
             return;
         }
 
-        Item item = BuiltInRegistries.ITEM.get(id).orElseThrow().value();
-        ItemStack stack = new ItemStack(item, countSetting.get());
+        mc.getConnection().sendCommand("tag @s add survivalGiveActive");
+        mc.getConnection().sendCommand("give @s " + itemSetting.get() + " " + countSetting.get());
+        mc.getConnection().sendCommand("tag @s remove survivalGiveActive");
 
-        boolean inserted = mc.player.getInventory().add(stack);
-
-        if (inserted) {
-            mc.player.displayClientMessage(Component.literal("§aGave " + countSetting.get() + "x " + id), false);
-        } else {
-            mc.player.displayClientMessage(Component.literal("§eInventory full!"), false);
-        }
+        mc.player.displayClientMessage(Component.literal("§aGave " + countSetting.get() + "x " + id), false);
 
         toggle();
     }

@@ -1,7 +1,7 @@
 package com.kkllffaa.meteor_litematica_printer;
 
-import meteordevelopment.meteorclient.events.game.OpenScreenEvent;
 import meteordevelopment.meteorclient.events.game.ReceiveMessageEvent;
+import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
@@ -75,9 +75,12 @@ public class CoinFlipSniper extends Module {
 
         pendingTarget = playerName;
         waitingForConfirm = false;
-        mc.player.displayClientMessage(Component.literal(
-            "§aSniping §e" + playerName + "§a's flip for §e" + amountStr
-        ), false);
+
+        if (mc.player != null) {
+            mc.player.displayClientMessage(Component.literal(
+                "§aSniping §e" + playerName + "§a's flip for §e" + amountStr
+            ), false);
+        }
 
         new Thread(() -> {
             try {
@@ -90,108 +93,89 @@ public class CoinFlipSniper extends Module {
     }
 
     @EventHandler
-    private void onOpenScreen(OpenScreenEvent event) {
-        if (event.screen == null) return;
+    private void onTick(TickEvent.Post event) {
+        if (mc.screen == null) return;
+        if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) return;
 
-        String title = "";
-        if (event.screen instanceof AbstractContainerScreen<?> screen) {
-            title = screen.getTitle().getString();
-        }
+        String title = screen.getTitle().getString();
 
         // Debug
         if (mc.player != null) {
             mc.player.displayClientMessage(
-                Component.literal("§eGUI opened: §f" + title), false
+                Component.literal("§eTicking GUI: §f" + title), false
             );
         }
 
-        if (title.equals("Active Coinflips") && pendingTarget != null) {
-            String finalTitle = title;
-            new Thread(() -> {
-                try {
-                    Thread.sleep(200);
-                    mc.execute(() -> clickTargetHead());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-        }
+        // Looking for target player head
+        if (pendingTarget != null && !waitingForConfirm) {
+            var slots = screen.getMenu().slots;
+            for (int i = 0; i < slots.size(); i++) {
+                ItemStack stack = slots.get(i).getItem();
+                if (stack.isEmpty()) continue;
 
-        if (title.equals("Confirm") && waitingForConfirm) {
-            new Thread(() -> {
-                try {
-                    Thread.sleep(200);
-                    mc.execute(() -> clickConfirm());
-                } catch (InterruptedException e) {
-                    e.printStackTrace();
-                }
-            }).start();
-        }
-    }
+                List<Component> tooltip = stack.getTooltipLines(
+                    net.minecraft.world.item.Item.TooltipContext.EMPTY, null,
+                    net.minecraft.world.item.TooltipFlag.NORMAL
+                );
 
-    private void clickTargetHead() {
-        if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) return;
-        if (pendingTarget == null) return;
+                for (Component line : tooltip) {
+                    String lineText = line.getString();
 
-        var slots = screen.getMenu().slots;
-        for (int i = 0; i < slots.size(); i++) {
-            ItemStack stack = slots.get(i).getItem();
-            if (stack.isEmpty()) continue;
+                    // Debug every tooltip
+                    if (mc.player != null) {
+                        mc.player.displayClientMessage(
+                            Component.literal("§7Slot " + i + ": §f" + lineText), false
+                        );
+                    }
 
-            List<Component> tooltip = stack.getTooltipLines(
-                net.minecraft.world.item.Item.TooltipContext.EMPTY, null,
-                net.minecraft.world.item.TooltipFlag.NORMAL
-            );
-
-            for (Component line : tooltip) {
-                if (line.getString().contains(pendingTarget)) {
-                    mc.gameMode.handleInventoryMouseClick(
-                        screen.getMenu().containerId, i, 0,
-                        ClickType.PICKUP,
-                        mc.player
-                    );
-                    waitingForConfirm = true;
-                    return;
+                    if (lineText.contains(pendingTarget)) {
+                        mc.gameMode.handleInventoryMouseClick(
+                            screen.getMenu().containerId, i, 0,
+                            ClickType.PICKUP,
+                            mc.player
+                        );
+                        waitingForConfirm = true;
+                        if (mc.player != null) {
+                            mc.player.displayClientMessage(Component.literal(
+                                "§aClicked §e" + pendingTarget + "§a's head!"
+                            ), false);
+                        }
+                        return;
+                    }
                 }
             }
         }
 
-        if (mc.player != null) {
-            mc.player.displayClientMessage(Component.literal(
-                "§cCouldn't find §e" + pendingTarget + "§c in the coinflip menu!"
-            ), false);
-        }
-        pendingTarget = null;
-    }
+        // Looking for confirm button
+        if (waitingForConfirm) {
+            var slots = screen.getMenu().slots;
+            for (int i = 0; i < slots.size(); i++) {
+                ItemStack stack = slots.get(i).getItem();
+                if (stack.isEmpty()) continue;
 
-    private void clickConfirm() {
-        if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) return;
+                List<Component> tooltip = stack.getTooltipLines(
+                    net.minecraft.world.item.Item.TooltipContext.EMPTY, null,
+                    net.minecraft.world.item.TooltipFlag.NORMAL
+                );
 
-        var slots = screen.getMenu().slots;
-        for (int i = 0; i < slots.size(); i++) {
-            ItemStack stack = slots.get(i).getItem();
-            if (stack.isEmpty()) continue;
+                for (Component line : tooltip) {
+                    String lineText = line.getString();
 
-            List<Component> tooltip = stack.getTooltipLines(
-                net.minecraft.world.item.Item.TooltipContext.EMPTY, null,
-                net.minecraft.world.item.TooltipFlag.NORMAL
-            );
-
-            for (Component line : tooltip) {
-                if (line.getString().equalsIgnoreCase("Confirm")) {
-                    mc.gameMode.handleInventoryMouseClick(
-                        screen.getMenu().containerId, i, 0,
-                        ClickType.PICKUP,
-                        mc.player
-                    );
-                    if (mc.player != null) {
-                        mc.player.displayClientMessage(Component.literal(
-                            "§aCoinflip accepted!"
-                        ), false);
+                    if (lineText.equalsIgnoreCase("Confirm")) {
+                        mc.gameMode.handleInventoryMouseClick(
+                            screen.getMenu().containerId, i, 0,
+                            ClickType.PICKUP,
+                            mc.player
+                        );
+                        if (mc.player != null) {
+                            mc.player.displayClientMessage(Component.literal(
+                                "§aCoinflip accepted!"
+                            ), false);
+                        }
+                        pendingTarget = null;
+                        waitingForConfirm = false;
+                        return;
                     }
-                    pendingTarget = null;
-                    waitingForConfirm = false;
-                    return;
                 }
             }
         }

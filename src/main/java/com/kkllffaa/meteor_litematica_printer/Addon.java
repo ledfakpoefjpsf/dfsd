@@ -24,6 +24,7 @@ public class Addon extends MeteorAddon {
         Modules.get().add(new KeepInventory());
         Modules.get().add(new SingleplayerCommand());
         Modules.get().add(new FastBridgeMacro());
+        Modules.get().add(new PlayerNameTP());
     }
 
     @Override

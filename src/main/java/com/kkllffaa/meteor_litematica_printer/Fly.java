@@ -88,8 +88,8 @@ public class Fly extends Module {
 
         if (mc.options.keyUp.isDown()) forward += 1.0;     // W
         if (mc.options.keyDown.isDown()) forward -= 1.0;   // S
-        if (mc.options.keyLeft.isDown()) strafe -= 1.0;    // A
-        if (mc.options.keyRight.isDown()) strafe += 1.0;   // D
+        if (mc.options.keyLeft.isDown()) strafe += 1.0;    // A = left
+        if (mc.options.keyRight.isDown()) strafe -= 1.0;   // D = right
 
         if (forward != 0.0 || strafe != 0.0) {
             double yaw = Math.toRadians(p.getYRot());

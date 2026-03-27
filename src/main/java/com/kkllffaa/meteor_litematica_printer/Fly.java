@@ -7,9 +7,7 @@ import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.MinecraftClient;
 import net.minecraft.client.network.ClientPlayerEntity;
-import net.minecraft.util.math.Vec3d;
 
 public class Fly extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -55,7 +53,6 @@ public class Fly extends Module {
     public void onDeactivate() {
         if (mc.player != null) {
             mc.player.getAbilities().flying = false;
-            // Keep mayfly true only if player is creative/spectator
             boolean keepMayfly = mc.player.isCreative() || mc.player.isSpectator();
             mc.player.getAbilities().mayfly = keepMayfly;
         }
@@ -72,9 +69,7 @@ public class Fly extends Module {
         double h = horizontalSpeed.get();
         double v = verticalSpeed.get();
 
-        Vec3d vel = p.getVelocity();
         double vy = 0.0;
-
         if (mc.options.jumpKey.isPressed()) vy += v;
         if (mc.options.sneakKey.isPressed()) vy -= v;
 

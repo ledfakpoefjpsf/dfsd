@@ -9,8 +9,3 @@
     "defaultRequire": 1
   }
 }
-```
-
-This time you **must** create the mixin folder. On GitHub when creating the file type the full path:
-```
-src/main/java/com/kkllffaa/meteor_litematica_printer/mixin/MixinServerPlayer.java

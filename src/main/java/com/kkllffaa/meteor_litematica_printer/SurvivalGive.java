@@ -13,15 +13,19 @@ import java.util.stream.Collectors;
 public class SurvivalGive extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
+    private static List<String> getItemList() {
+        return BuiltInRegistries.ITEM.keySet()
+            .stream()
+            .map(ResourceLocation::toString)
+            .sorted()
+            .collect(Collectors.toList());
+    }
+
     private final Setting<String> itemSetting = sgGeneral.add(new StringSetting.Builder()
         .name("item")
         .description("Item ID to give (e.g. minecraft:diamond_sword)")
         .defaultValue("minecraft:diamond")
-        .suggestions(() -> BuiltInRegistries.ITEM.keySet()
-            .stream()
-            .map(ResourceLocation::toString)
-            .sorted()
-            .collect(Collectors.toList()))
+        .suggestion((s, list) -> getItemList())
         .build()
     );
 

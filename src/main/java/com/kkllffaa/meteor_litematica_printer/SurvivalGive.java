@@ -1,16 +1,15 @@
-package com.kkllffaa.meteorlitematicaprinter;
+package com.kkllffaa.meteor_litematica_printer;
 
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import net.minecraft.item.Item;
-import net.minecraft.item.ItemStack;
-import net.minecraft.registry.Registries;
-import net.minecraft.text.Text;
-import net.minecraft.util.Identifier;
+import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceLocation;
+import net.minecraft.world.item.Item;
+import net.minecraft.world.item.ItemStack;
 
 public class SurvivalGive extends Module {
-
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
     private final Setting<String> itemSetting = sgGeneral.add(new StringSetting.Builder()
@@ -37,25 +36,25 @@ public class SurvivalGive extends Module {
     public void onActivate() {
         if (mc.player == null) return;
 
-        Identifier id = Identifier.tryParse(itemSetting.get());
+        ResourceLocation id = ResourceLocation.tryParse(itemSetting.get());
 
-        if (id == null || !Registries.ITEM.containsId(id)) {
-            mc.player.sendMessage(Text.literal("§cInvalid item ID: " + itemSetting.get()), false);
+        if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
+            mc.player.sendSystemMessage(Component.literal("§cInvalid item ID: " + itemSetting.get()));
             toggle();
             return;
         }
 
-        Item item = Registries.ITEM.get(id);
+        Item item = BuiltInRegistries.ITEM.get(id);
         ItemStack stack = new ItemStack(item, countSetting.get());
 
-        boolean inserted = mc.player.getInventory().insertStack(stack);
+        boolean inserted = mc.player.getInventory().add(stack);
 
         if (inserted) {
-            mc.player.sendMessage(Text.literal("§aGave " + countSetting.get() + "x " + id), false);
+            mc.player.sendSystemMessage(Component.literal("§aGave " + countSetting.get() + "x " + id));
         } else {
-            mc.player.sendMessage(Text.literal("§eInventory full!"), false);
+            mc.player.sendSystemMessage(Component.literal("§eInventory full!"));
         }
 
-        toggle(); // auto-disables after giving
+        toggle();
     }
 }

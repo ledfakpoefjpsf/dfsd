@@ -1,7 +1,7 @@
 package com.kkllffaa.meteor_litematica_printer;
 
-import meteordevelopment.meteorclient.events.game.OpenScreenEvent;
 import meteordevelopment.meteorclient.events.game.ReceiveMessageEvent;
+import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
@@ -49,37 +49,18 @@ public class CoinFlip extends Module {
     }
 
     @EventHandler
-    private void onOpenScreen(OpenScreenEvent event) {
-        if (event.screen == null) return;
+    private void onTick(TickEvent.Post event) {
+        if (!waitingForCurrencyMenu) return;
+        if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) return;
 
-        String title = "";
-        if (event.screen instanceof AbstractContainerScreen<?> screen) {
-            title = screen.getTitle().getString();
-        }
+        String title = screen.getTitle().getString();
 
         // Debug
         if (mc.player != null) {
             mc.player.displayClientMessage(
-                Component.literal("§eGUI opened: §f" + title), false
+                Component.literal("§eTicking GUI: §f" + title), false
             );
         }
-
-        if (!waitingForCurrencyMenu) return;
-        if (!title.contains("Wager")) return;
-
-        String finalTitle = title;
-        new Thread(() -> {
-            try {
-                Thread.sleep(200);
-                mc.execute(() -> clickCurrency());
-            } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-        }).start();
-    }
-
-    private void clickCurrency() {
-        if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) return;
 
         String target = switch (currencySetting.get()) {
             case MONEY -> "Wager Money";
@@ -98,7 +79,16 @@ public class CoinFlip extends Module {
             );
 
             for (Component line : tooltip) {
-                if (line.getString().equalsIgnoreCase(target)) {
+                String lineText = line.getString();
+
+                // Debug every tooltip line
+                if (mc.player != null) {
+                    mc.player.displayClientMessage(
+                        Component.literal("§7Slot " + i + ": §f" + lineText), false
+                    );
+                }
+
+                if (lineText.equalsIgnoreCase(target)) {
                     mc.gameMode.handleInventoryMouseClick(
                         screen.getMenu().containerId, i, 0,
                         ClickType.PICKUP,
@@ -113,12 +103,6 @@ public class CoinFlip extends Module {
                     return;
                 }
             }
-        }
-
-        if (mc.player != null) {
-            mc.player.displayClientMessage(
-                Component.literal("§cCouldn't find slot for: " + target), false
-            );
         }
     }
 

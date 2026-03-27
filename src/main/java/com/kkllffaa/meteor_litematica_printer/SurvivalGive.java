@@ -39,20 +39,20 @@ public class SurvivalGive extends Module {
         ResourceLocation id = ResourceLocation.tryParse(itemSetting.get());
 
         if (id == null || !BuiltInRegistries.ITEM.containsKey(id)) {
-            mc.player.sendSystemMessage(Component.literal("§cInvalid item ID: " + itemSetting.get()));
+            mc.player.displayClientMessage(Component.literal("§cInvalid item ID: " + itemSetting.get()), false);
             toggle();
             return;
         }
 
-        Item item = BuiltInRegistries.ITEM.get(id);
+        Item item = BuiltInRegistries.ITEM.get(id).value();
         ItemStack stack = new ItemStack(item, countSetting.get());
 
         boolean inserted = mc.player.getInventory().add(stack);
 
         if (inserted) {
-            mc.player.sendSystemMessage(Component.literal("§aGave " + countSetting.get() + "x " + id));
+            mc.player.displayClientMessage(Component.literal("§aGave " + countSetting.get() + "x " + id), false);
         } else {
-            mc.player.sendSystemMessage(Component.literal("§eInventory full!"));
+            mc.player.displayClientMessage(Component.literal("§eInventory full!"), false);
         }
 
         toggle();

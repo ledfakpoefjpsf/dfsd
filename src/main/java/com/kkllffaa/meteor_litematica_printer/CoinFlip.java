@@ -11,8 +11,8 @@ public class CoinFlip extends Module {
 
     private final Setting<String> amountSetting = sgGeneral.add(new StringSetting.Builder()
         .name("amount")
-        .description("Amount to coinflip (max 1,000,000,000)")
-        .defaultValue("100")
+        .description("Amount to coinflip e.g. $10K or 2 GC")
+        .defaultValue("$1K")
         .build()
     );
 
@@ -27,35 +27,19 @@ public class CoinFlip extends Module {
     @Override
     public void onActivate() {
         if (mc.player == null) return;
-
-        long amount;
-        try {
-            amount = Long.parseLong(amountSetting.get().trim().replace(",", ""));
-        } catch (NumberFormatException e) {
-            mc.player.displayClientMessage(Component.literal("§cInvalid amount: " + amountSetting.get()), false);
-            toggle();
-            return;
-        }
-
-        if (amount < 1 || amount > 1_000_000_000L) {
-            mc.player.displayClientMessage(Component.literal("§cAmount must be between 1 and 1,000,000,000"), false);
-            toggle();
-            return;
-        }
-
-        mc.getConnection().sendCommand("cf " + amount);
+        mc.getConnection().sendCommand("cf " + amountSetting.get());
         toggle();
     }
 
     @EventHandler
     private void onReceiveMessage(ReceiveMessageEvent event) {
-        String msg = event.getMessage().getString().toLowerCase();
+        String msg = event.getMessage().getString();
 
-        if (msg.contains("you won") || msg.contains("won the coinflip")) {
+        if (msg.contains("You have won the coinflip")) {
             totalWins++;
             winStreak++;
             printStats(true);
-        } else if (msg.contains("you lost") || msg.contains("lost the coinflip")) {
+        } else if (msg.contains("You have lost the coinflip")) {
             totalLosses++;
             winStreak = 0;
             printStats(false);

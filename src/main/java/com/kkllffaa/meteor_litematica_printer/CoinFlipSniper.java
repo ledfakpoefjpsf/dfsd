@@ -9,7 +9,7 @@ import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundOpenScreenPacket;
 import net.minecraft.world.item.ItemStack;
-import net.minecraft.world.item.Items;
+import net.minecraft.world.inventory.ClickType;
 
 import java.util.List;
 import java.util.regex.Matcher;
@@ -63,10 +63,8 @@ public class CoinFlipSniper extends Module {
         String playerName = matcher.group(1).trim();
         String amountStr = matcher.group(2).trim();
 
-        // Skip our own flips
         if (playerName.equalsIgnoreCase(mc.player.getName().getString())) return;
 
-        // Check GC vs $ mode
         boolean isGC = !amountStr.startsWith("$");
         if (isGC != gcMode.get()) return;
 
@@ -76,14 +74,12 @@ public class CoinFlipSniper extends Module {
 
         if (amount < min || amount > max) return;
 
-        // Store target and open /cf menu
         pendingTarget = playerName;
         waitingForConfirm = false;
         mc.player.displayClientMessage(Component.literal(
             "§aSniping §e" + playerName + "§a's flip for §e" + amountStr
         ), false);
 
-        // Small delay then open the menu
         new Thread(() -> {
             try {
                 Thread.sleep(300);
@@ -97,10 +93,17 @@ public class CoinFlipSniper extends Module {
     @EventHandler
     private void onPacket(PacketEvent.Receive event) {
         if (!(event.packet instanceof ClientboundOpenScreenPacket packet)) return;
+
         String title = packet.getTitle().getString();
 
+        // Debug - print every GUI title to chat
+        if (mc.player != null) {
+            mc.player.displayClientMessage(
+                Component.literal("§eGUI opened: §f" + title), false
+            );
+        }
+
         if (title.equals("Active Coinflips") && pendingTarget != null) {
-            // Wait a tick then scan for the target's head
             new Thread(() -> {
                 try {
                     Thread.sleep(200);
@@ -112,7 +115,6 @@ public class CoinFlipSniper extends Module {
         }
 
         if (title.equals("Confirm") && waitingForConfirm) {
-            // Wait a tick then click confirm
             new Thread(() -> {
                 try {
                     Thread.sleep(200);
@@ -128,14 +130,11 @@ public class CoinFlipSniper extends Module {
         if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) return;
         if (pendingTarget == null) return;
 
-        var menu = screen.getMenu();
-        var slots = menu.slots;
-
+        var slots = screen.getMenu().slots;
         for (int i = 0; i < slots.size(); i++) {
             ItemStack stack = slots.get(i).getItem();
             if (stack.isEmpty()) continue;
 
-            // Check tooltip for player name
             List<Component> tooltip = stack.getTooltipLines(
                 net.minecraft.world.item.Item.TooltipContext.EMPTY, null,
                 net.minecraft.world.item.TooltipFlag.NORMAL
@@ -143,10 +142,9 @@ public class CoinFlipSniper extends Module {
 
             for (Component line : tooltip) {
                 if (line.getString().contains(pendingTarget)) {
-                    // Click this slot
                     mc.gameMode.handleInventoryMouseClick(
-                        menu.containerId, i, 0, 
-                        net.minecraft.world.inventory.ClickType.PICKUP, 
+                        screen.getMenu().containerId, i, 0,
+                        ClickType.PICKUP,
                         mc.player
                     );
                     waitingForConfirm = true;
@@ -155,18 +153,18 @@ public class CoinFlipSniper extends Module {
             }
         }
 
-        mc.player.displayClientMessage(Component.literal(
-            "§cCouldn't find §e" + pendingTarget + "§c in the coinflip menu!"
-        ), false);
+        if (mc.player != null) {
+            mc.player.displayClientMessage(Component.literal(
+                "§cCouldn't find §e" + pendingTarget + "§c in the coinflip menu!"
+            ), false);
+        }
         pendingTarget = null;
     }
 
     private void clickConfirm() {
         if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) return;
 
-        var menu = screen.getMenu();
-        var slots = menu.slots;
-
+        var slots = screen.getMenu().slots;
         for (int i = 0; i < slots.size(); i++) {
             ItemStack stack = slots.get(i).getItem();
             if (stack.isEmpty()) continue;
@@ -179,13 +177,15 @@ public class CoinFlipSniper extends Module {
             for (Component line : tooltip) {
                 if (line.getString().equalsIgnoreCase("Confirm")) {
                     mc.gameMode.handleInventoryMouseClick(
-                        menu.containerId, i, 0,
-                        net.minecraft.world.inventory.ClickType.PICKUP,
+                        screen.getMenu().containerId, i, 0,
+                        ClickType.PICKUP,
                         mc.player
                     );
-                    mc.player.displayClientMessage(Component.literal(
-                        "§aCoinflip accepted!"
-                    ), false);
+                    if (mc.player != null) {
+                        mc.player.displayClientMessage(Component.literal(
+                            "§aCoinflip accepted!"
+                        ), false);
+                    }
                     pendingTarget = null;
                     waitingForConfirm = false;
                     return;

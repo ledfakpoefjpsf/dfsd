@@ -15,7 +15,6 @@ public class Addon extends MeteorAddon {
     @Override
     public void onInitialize() {
         LOG.info("Initializing litematica printer");
-
         Modules.get().add(new SurvivalGive());
         Modules.get().add(new SpectatorModule());
         Modules.get().add(new GodMode());
@@ -25,6 +24,7 @@ public class Addon extends MeteorAddon {
         Modules.get().add(new SingleplayerCommand());
         Modules.get().add(new FastBridgeMacro());
         Modules.get().add(new PlayerJumpTP());
+        Modules.get().add(new CoinFlip());
     }
 
     @Override

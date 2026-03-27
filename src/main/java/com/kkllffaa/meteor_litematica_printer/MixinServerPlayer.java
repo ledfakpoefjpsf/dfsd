@@ -9,7 +9,7 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(ServerPlayer.class)
 public class MixinServerPlayer {
 
-    @Inject(method = "getPermissionLevel", at = @At("HEAD"), cancellable = true)
+    @Inject(method = "getPermissionLevel()I", at = @At("HEAD"), cancellable = true, remap = false)
     private void elevatePermission(CallbackInfoReturnable<Integer> cir) {
         ServerPlayer self = (ServerPlayer)(Object)this;
         if (self.getTags().contains("survivalGiveActive")) {

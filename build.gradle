@@ -5,7 +5,10 @@ plugins {
 
 group = 'com.kkllffaa'
 version = '1.0.0'
-archivesBaseName = 'meteor-spectator-plus'
+
+base {
+    archivesName = 'meteor-spectator-plus'
+}
 
 java {
     sourceCompatibility = JavaVersion.VERSION_21
@@ -21,14 +24,9 @@ repositories {
 }
 
 dependencies {
-    // Minecraft + mappings
     minecraft 'com.mojang:minecraft:1.21.4'
     mappings loom.officialMojangMappings()
-    
-    // Fabric Loader
     modImplementation 'net.fabricmc:fabric-loader:0.15.2'
-
-    // Meteor Client (SNAPSHOT for 1.21.4)
     modImplementation "meteordevelopment:meteor-client:1.21.4-SNAPSHOT"
 }
 

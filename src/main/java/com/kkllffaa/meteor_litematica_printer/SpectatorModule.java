@@ -1,12 +1,8 @@
 package com.kkllffaa.meteor_litematica_printer;
 
 import meteordevelopment.meteorclient.settings.*;
-import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import net.minecraft.client.CameraType;
 import net.minecraft.world.entity.player.Player;
-
-import java.util.List;
 
 public class SpectatorModule extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -19,7 +15,7 @@ public class SpectatorModule extends Module {
     );
 
     public SpectatorModule() {
-        super(Categories.Player, "spectator-module", "Lock your camera to another player's perspective.");
+        super(Addon.CATEGORY, "spectator-module", "Lock your camera to another player's perspective.");
     }
 
     @Override
@@ -49,9 +45,6 @@ public class SpectatorModule extends Module {
 
     @Override
     public void onDeactivate() {
-        // Reset camera back to yourself
-        if (mc.player != null) {
-            mc.setCameraEntity(mc.player);
-        }
+        if (mc.player != null) mc.setCameraEntity(mc.player);
     }
 }

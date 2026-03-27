@@ -7,7 +7,7 @@ import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.orbit.EventHandler;
-import net.minecraft.client.network.ClientPlayerEntity;
+import net.minecraft.client.player.LocalPlayer;
 
 public class Fly extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -60,7 +60,7 @@ public class Fly extends Module {
 
     @EventHandler
     private void onTick(TickEvent.Pre event) {
-        ClientPlayerEntity p = mc.player;
+        LocalPlayer p = mc.player;
         if (p == null) return;
 
         p.setOnGround(false);
@@ -70,27 +70,27 @@ public class Fly extends Module {
         double v = verticalSpeed.get();
 
         double vy = 0.0;
-        if (mc.options.jumpKey.isPressed()) vy += v;
-        if (mc.options.sneakKey.isPressed()) vy -= v;
+        if (mc.options.keyJump.isDown()) vy += v;
+        if (mc.options.keyShift.isDown()) vy -= v;
 
         double forward = 0.0;
         double strafe = 0.0;
-        if (mc.options.forwardKey.isPressed()) forward += 1.0;
-        if (mc.options.backKey.isPressed()) forward -= 1.0;
-        if (mc.options.leftKey.isPressed()) strafe += 1.0;
-        if (mc.options.rightKey.isPressed()) strafe -= 1.0;
+        if (mc.options.keyUp.isDown()) forward += 1.0;
+        if (mc.options.keyDown.isDown()) forward -= 1.0;
+        if (mc.options.keyLeft.isDown()) strafe += 1.0;
+        if (mc.options.keyRight.isDown()) strafe -= 1.0;
 
         if (forward != 0.0 || strafe != 0.0) {
-            double yaw = Math.toRadians(p.getYaw());
+            double yaw = Math.toRadians(p.getYRot());
             double sin = Math.sin(yaw);
             double cos = Math.cos(yaw);
 
             double mx = (forward * cos - strafe * sin) * h;
             double mz = (forward * sin + strafe * cos) * h;
-            p.setVelocity(mx, vy, mz);
+            p.setDeltaMovement(mx, vy, mz);
         } else {
-            double idleY = (antiKick.get() && !mc.options.jumpKey.isPressed() && !mc.options.sneakKey.isPressed()) ? -0.04 : 0.0;
-            p.setVelocity(0.0, vy + idleY, 0.0);
+            double idleY = (antiKick.get() && !mc.options.keyJump.isDown() && !mc.options.keyShift.isDown()) ? -0.04 : 0.0;
+            p.setDeltaMovement(0.0, vy + idleY, 0.0);
         }
     }
 }

@@ -5,9 +5,10 @@ import meteordevelopment.meteorclient.settings.Setting;
 import meteordevelopment.meteorclient.settings.SettingGroup;
 import meteordevelopment.meteorclient.settings.StringSetting;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.ResourceLocation;
+import net.minecraft.core.registries.Registries;
 
 public class EnchantAny extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -45,8 +46,8 @@ public class EnchantAny extends Module {
         }
 
         ResourceLocation id = ResourceLocation.tryParse(enchantSetting.get());
-        if (id == null || !BuiltInRegistries.ENCHANTMENT.containsKey(id)) {
-            mc.player.displayClientMessage(Component.literal("§cInvalid enchantment: " + enchantSetting.get()), false);
+        if (id == null) {
+            mc.player.displayClientMessage(Component.literal("§cInvalid enchantment ID: " + enchantSetting.get()), false);
             toggle();
             return;
         }
@@ -61,7 +62,9 @@ public class EnchantAny extends Module {
             var held = sp.getMainHandItem();
             if (held.isEmpty()) return;
 
-            var enchHolder = BuiltInRegistries.ENCHANTMENT.get(id).orElse(null);
+            var enchantments = server.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
+            var enchKey = ResourceKey.create(Registries.ENCHANTMENT, id);
+            var enchHolder = enchantments.get(enchKey).orElse(null);
             if (enchHolder == null) return;
 
             held.enchant(enchHolder, level);

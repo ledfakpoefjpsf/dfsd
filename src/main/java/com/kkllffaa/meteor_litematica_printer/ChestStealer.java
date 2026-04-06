@@ -10,77 +10,55 @@ import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 
 public class ChestStealer extends Module {
-    private final SettingGroup sgGeneral = settings.getDefaultGroup();
 
-    private final Setting<Integer> delaySetting = sgGeneral.add(new IntSetting.Builder()
-        .name("delay-ticks")
-        .description("Ticks between each item steal")
-        .defaultValue(2)
-        .min(1)
-        .sliderMax(20)
-        .build()
-    );
-
-    private boolean stealing = false;
-    private int tickDelay = 0;
-    private int currentSlot = 0;
+    private String lastTitle = "";
+    private boolean done = false;
 
     public ChestStealer() {
-        super(Addon.CATEGORY, "chest-stealer", "Automatically takes all items from a chest when opened.");
+        super(Addon.CATEGORY, "chest-stealer", "Instantly takes all items from a chest when opened.");
     }
 
     @Override
     public void onActivate() {
-        stealing = false;
-        currentSlot = 0;
-        tickDelay = 0;
+        lastTitle = "";
+        done = false;
     }
 
     @EventHandler
     private void onTick(TickEvent.Post event) {
         if (!(mc.screen instanceof AbstractContainerScreen<?> screen)) {
-            if (stealing) {
-                stealing = false;
-                currentSlot = 0;
-            }
+            lastTitle = "";
+            done = false;
             return;
         }
 
-        String title = screen.getTitle().getString().toLowerCase();
-        if (!title.contains("chest") && !title.contains("container") && !title.contains("shulker")) return;
-
-        if (!stealing) {
-            stealing = true;
-            currentSlot = 0;
-            tickDelay = 0;
+        String title = screen.getTitle().getString();
+        if (!title.equals(lastTitle)) {
+            lastTitle = title;
+            done = false;
         }
 
-        tickDelay++;
-        if (tickDelay < delaySetting.get()) return;
-        tickDelay = 0;
+        if (done) return;
+        done = true;
 
         var slots = screen.getMenu().slots;
         int chestSize = slots.size() - 36;
 
-        while (currentSlot < chestSize) {
-            ItemStack stack = slots.get(currentSlot).getItem();
+        for (int i = 0; i < chestSize; i++) {
+            ItemStack stack = slots.get(i).getItem();
             if (!stack.isEmpty()) {
                 mc.gameMode.handleInventoryMouseClick(
                     screen.getMenu().containerId,
-                    currentSlot, 0,
+                    i, 0,
                     ClickType.QUICK_MOVE,
                     mc.player
                 );
-                currentSlot++;
-                return;
             }
-            currentSlot++;
         }
 
-        stealing = false;
         if (mc.player != null) {
             mc.player.displayClientMessage(
-                Component.literal("§aChest stealer finished!"), false
+                Component.literal("§aChest cleared!"), false
             );
         }
     }

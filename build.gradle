@@ -24,10 +24,10 @@ repositories {
 }
 
 dependencies {
-    minecraft 'com.mojang:minecraft:1.21.4'
+    minecraft 'com.mojang:minecraft:1.21.11'
     mappings loom.officialMojangMappings()
-    modImplementation 'net.fabricmc:fabric-loader:0.15.2'
-    modImplementation "meteordevelopment:meteor-client:1.21.4-SNAPSHOT"
+    modImplementation 'net.fabricmc:fabric-loader:0.16.14'
+    modImplementation "meteordevelopment:meteor-client:1.21.11-SNAPSHOT"
     annotationProcessor 'net.fabricmc:sponge-mixin:0.15.4+mixin.0.8.7'
 }
 
@@ -54,5 +54,5 @@ tasks.register('printVersion') {
 }
 
 tasks.register('printMCVersion') {
-    doLast { println('1.21.4') }
+    doLast { println('1.21.11') }
 }

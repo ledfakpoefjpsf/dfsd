@@ -1,6 +1,6 @@
 package com.kkllffaa.meteor_litematica_printer;
 
-import meteordevelopment.meteorclient.events.mouse.MouseButtonEvent;
+import meteordevelopment.meteorclient.events.game.MouseButtonEvent;
 import meteordevelopment.meteorclient.systems.friends.Friends;
 import meteordevelopment.meteorclient.systems.modules.Module;
 import meteordevelopment.meteorclient.utils.misc.input.KeyAction;
@@ -17,11 +17,10 @@ public class MiddleClickFriend extends Module {
     @EventHandler
     private void onMouseButton(MouseButtonEvent event) {
         if (event.action != KeyAction.Press) return;
-        if (event.button != 2) return; // 2 = middle mouse button
+        if (event.button != 2) return;
         if (mc.player == null || mc.level == null) return;
-        if (mc.screen != null) return; // don't trigger in GUIs
+        if (mc.screen != null) return;
 
-        // Find the player being looked at
         if (mc.crosshairPickEntity instanceof Player target) {
             if (target == mc.player) return;
 

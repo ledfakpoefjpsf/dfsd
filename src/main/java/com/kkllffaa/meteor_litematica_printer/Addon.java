@@ -18,9 +18,7 @@ public class Addon extends MeteorAddon {
         Modules.get().add(new SpectatorModule());
         Modules.get().add(new GodMode());
         Modules.get().add(new Fly());
-        Modules.get().add(new SingleplayerCommand());
         Modules.get().add(new FastBridgeMacro());
-        Modules.get().add(new PlayerJumpTP());
         Modules.get().add(new CoinFlip());
         Modules.get().add(new CoinFlipSniper());
         Modules.get().add(new AntiAFK());

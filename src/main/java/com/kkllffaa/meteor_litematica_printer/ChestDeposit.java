@@ -7,12 +7,10 @@ import meteordevelopment.orbit.EventHandler;
 import net.minecraft.client.gui.screens.inventory.AbstractContainerScreen;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
 import net.minecraft.world.inventory.ClickType;
 import net.minecraft.world.item.ItemStack;
 
 import java.util.List;
-import java.util.Set;
 
 public class ChestDeposit extends Module {
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
@@ -69,7 +67,6 @@ public class ChestDeposit extends Module {
 
         String title = screen.getTitle().getString();
 
-        // Reset when a new chest is opened
         if (!title.equals(lastTitle)) {
             lastTitle = title;
             depositing = true;
@@ -86,9 +83,7 @@ public class ChestDeposit extends Module {
         var slots = screen.getMenu().slots;
         int chestSize = slots.size() - 36;
 
-        // Scan player inventory (slots after chest slots)
         while (currentSlot < slots.size()) {
-            // Only scan player inventory slots
             if (currentSlot < chestSize) {
                 currentSlot++;
                 continue;
@@ -108,7 +103,6 @@ public class ChestDeposit extends Module {
             currentSlot++;
         }
 
-        // Done depositing
         depositing = false;
         if (mc.player != null) {
             mc.player.displayClientMessage(
@@ -118,7 +112,7 @@ public class ChestDeposit extends Module {
     }
 
     private boolean shouldDeposit(ItemStack stack) {
-        ResourceLocation id = BuiltInRegistries.ITEM.getKey(stack.getItem());
+        var id = BuiltInRegistries.ITEM.getKey(stack.getItem());
         if (id == null) return false;
         String idStr = id.toString();
         for (String item : itemsSetting.get()) {

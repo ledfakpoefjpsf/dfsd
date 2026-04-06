@@ -24,6 +24,7 @@ public class Addon extends MeteorAddon {
         Modules.get().add(new AntiAFK());
         Modules.get().add(new MentionAlert());
         Modules.get().add(new ChestStealer());
+        Modules.get().add(new ChestDeposit());
     }
 
     @Override

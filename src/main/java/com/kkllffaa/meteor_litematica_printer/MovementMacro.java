@@ -101,22 +101,27 @@ public class MovementMacro extends Module {
 
         if (!isRecording && wasRecording) {
             wasRecording = false;
+
             if (recorded.isEmpty()) {
                 mc.player.displayClientMessage(
                     Component.literal("§c[Macro] §fNothing recorded!"), false
                 );
                 return;
             }
+
             mc.player.displayClientMessage(
                 Component.literal("§a[Macro] §fRecorded §e" + recorded.size() + " §fticks! Starting playback..."), false
             );
+
             playing = true;
             playIndex = 0;
             repeatCount = 0;
         }
 
+        // RECORDING
         if (isRecording) {
             var options = mc.options;
+
             recorded.add(new Frame(
                 options.keyUp.isDown(),
                 options.keyDown.isDown(),
@@ -131,6 +136,7 @@ public class MovementMacro extends Module {
             return;
         }
 
+        // PLAYBACK
         if (!playing || recorded.isEmpty()) return;
 
         Frame frame = recorded.get(playIndex);
@@ -144,6 +150,7 @@ public class MovementMacro extends Module {
             if (!loopSetting.get() && repeatCount >= repeatsSetting.get()) {
                 playing = false;
                 restoreInputs();
+
                 mc.player.displayClientMessage(
                     Component.literal("§a[Macro] §fPlayback finished!"), false
                 );
@@ -152,28 +159,33 @@ public class MovementMacro extends Module {
     }
 
     private void applyFrame(LocalPlayer player, Frame frame) {
-        var input = player.input;
-        if (input == null) return;
+        var options = mc.options;
 
-        // ✅ 1.21.4 correct movement system
-        input.forwardImpulse = frame.forward ? 1.0F : (frame.backward ? -1.0F : 0.0F);
-        input.leftImpulse = frame.left ? 1.0F : (frame.right ? -1.0F : 0.0F);
+        options.keyUp.setDown(frame.forward);
+        options.keyDown.setDown(frame.backward);
+        options.keyLeft.setDown(frame.left);
+        options.keyRight.setDown(frame.right);
 
-        input.jumping = frame.jump;
-        input.shiftKeyDown = frame.sneak;
+        options.keyJump.setDown(frame.jump);
+        options.keyShift.setDown(frame.sneak);
+        options.keySprint.setDown(frame.sprint);
 
-        player.setSprinting(frame.sprint);
         player.setYRot(frame.yaw);
         player.setXRot(frame.pitch);
     }
 
     private void restoreInputs() {
-        if (mc.player == null || mc.player.input == null) return;
-        var input = mc.player.input;
+        if (mc.options == null) return;
 
-        input.forwardImpulse = 0.0F;
-        input.leftImpulse = 0.0F;
-        input.jumping = false;
-        input.shiftKeyDown = false;
+        var options = mc.options;
+
+        options.keyUp.setDown(false);
+        options.keyDown.setDown(false);
+        options.keyLeft.setDown(false);
+        options.keyRight.setDown(false);
+
+        options.keyJump.setDown(false);
+        options.keyShift.setDown(false);
+        options.keySprint.setDown(false);
     }
 }

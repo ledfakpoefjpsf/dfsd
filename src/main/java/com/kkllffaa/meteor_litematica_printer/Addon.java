@@ -15,6 +15,8 @@ public class Addon extends MeteorAddon {
     @Override
     public void onInitialize() {
         LOG.info("Initializing litematica printer");
+
+        // Standard Modules
         Modules.get().add(new SpectatorModule());
         Modules.get().add(new GodMode());
         Modules.get().add(new Fly());
@@ -26,9 +28,11 @@ public class Addon extends MeteorAddon {
         Modules.get().add(new ChestStealer());
         Modules.get().add(new ChestDeposit());
         Modules.get().add(new FishCounter());
-        Modules.get().add(new MovementMacro());
+        
+        // Swapping MovementMacro for FarmReach
+        Modules.get().add(new FarmReach()); 
+        
         Modules.get().add(new Phase());
-        // FightBot and WorldDownloader removed
     }
 
     @Override

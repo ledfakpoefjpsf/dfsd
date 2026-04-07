@@ -82,47 +82,44 @@ public class MovementMacro extends Module {
         }
     }
 
-    // ✅ RECORD - Using 1.21.4 field names
     private void recordFrame() {
         Options o = mc.options;
 
         frames.add(new Frame(
-            o.forwardKey.isPressed(),
-            o.backKey.isPressed(),
-            o.leftKey.isPressed(),
-            o.rightKey.isPressed(),
-            o.jumpKey.isPressed(),
-            o.sneakKey.isPressed(),
+            o.keyForward.isPressed(),
+            o.keyBack.isPressed(),
+            o.keyLeft.isPressed(),
+            o.keyRight.isPressed(),
+            o.keyJump.isPressed(),
+            o.keySneak.isPressed(),
             mc.player.isSprinting()
         ));
     }
 
-    // ✅ PLAY - Using 1.21.4 field names
     private void playFrame(Frame f) {
         Options o = mc.options;
 
-        o.forwardKey.setPressed(f.forward);
-        o.backKey.setPressed(f.backward);
-        o.leftKey.setPressed(f.left);
-        o.rightKey.setPressed(f.right);
+        o.keyForward.setPressed(f.forward);
+        o.keyBack.setPressed(f.backward);
+        o.keyLeft.setPressed(f.left);
+        o.keyRight.setPressed(f.right);
 
-        o.jumpKey.setPressed(f.jump);
-        o.sneakKey.setPressed(f.sneak);
+        o.keyJump.setPressed(f.jump);
+        o.keySneak.setPressed(f.sneak);
 
         mc.player.setSprinting(f.sprint);
     }
 
-    // ✅ RESET - Using 1.21.4 field names
     private void resetKeys() {
         Options o = mc.options;
 
-        o.forwardKey.setPressed(false);
-        o.backKey.setPressed(false);
-        o.leftKey.setPressed(false);
-        o.rightKey.setPressed(false);
+        o.keyForward.setPressed(false);
+        o.keyBack.setPressed(false);
+        o.keyLeft.setPressed(false);
+        o.keyRight.setPressed(false);
 
-        o.jumpKey.setPressed(false);
-        o.sneakKey.setPressed(false);
+        o.keyJump.setPressed(false);
+        o.keySneak.setPressed(false);
 
         if (mc.player != null) mc.player.setSprinting(false);
     }

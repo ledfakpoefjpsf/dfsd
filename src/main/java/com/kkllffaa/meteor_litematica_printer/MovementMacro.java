@@ -1,141 +1,212 @@
 package com.kkllffaa.meteor_litematica_printer;
 
+import meteordevelopment.meteorclient.events.world.TickEvent;
 import meteordevelopment.meteorclient.settings.*;
 import meteordevelopment.meteorclient.systems.modules.Module;
-import meteordevelopment.meteorclient.systems.modules.Categories;
 import meteordevelopment.meteorclient.utils.misc.Keybind;
 import meteordevelopment.orbit.EventHandler;
-import meteordevelopment.meteorclient.events.world.TickEvent;
-
-import net.minecraft.client.Options;
+import net.minecraft.client.player.LocalPlayer;
+import net.minecraft.network.chat.Component;
 
 import java.util.ArrayList;
 import java.util.List;
 
 public class MovementMacro extends Module {
-
     private final SettingGroup sgGeneral = settings.getDefaultGroup();
+
+    // --- Settings ---
 
     private final Setting<Boolean> recordingSetting = sgGeneral.add(new BoolSetting.Builder()
         .name("recording")
+        .description("Manual toggle for recording.")
         .defaultValue(false)
+        .onChanged(v -> { if(!v) wasRecording = true; }) // Trigger stop logic when unticked manually
         .build()
     );
 
-    private final Setting<Keybind> recordToggleKey = sgGeneral.add(new KeybindSetting.Builder()
-        .name("record-toggle-key")
-        .defaultValue(Keybind.none())
-        .build()
-    );
-
-    private final Setting<Keybind> holdRecordKey = sgGeneral.add(new KeybindSetting.Builder()
-        .name("hold-record-key")
+    private final Setting<Keybind> recordKey = sgGeneral.add(new KeybindSetting.Builder()
+        .name("record-keybind")
+        .description("Key to toggle or hold for recording.")
         .defaultValue(Keybind.none())
         .build()
     );
 
     private final Setting<Boolean> useHoldMode = sgGeneral.add(new BoolSetting.Builder()
-        .name("use-hold")
+        .name("use-hold-mode")
+        .description("Only records while the keybind is held down.")
         .defaultValue(false)
         .build()
     );
 
-    private final List<Frame> frames = new ArrayList<>();
-    private int playbackIndex = 0;
+    private final Setting<Boolean> loopSetting = sgGeneral.add(new BoolSetting.Builder()
+        .name("loop")
+        .description("Loop the macro continuously.")
+        .defaultValue(true)
+        .build()
+    );
+
+    private final Setting<Integer> repeatsSetting = sgGeneral.add(new IntSetting.Builder()
+        .name("repeats")
+        .description("How many times to repeat if loop is off.")
+        .defaultValue(1)
+        .min(1)
+        .sliderMax(100)
+        .build()
+    );
+
+    // --- State ---
+
+    private static class Frame {
+        boolean forward, backward, left, right, jump, sneak, sprint;
+        float yaw, pitch;
+
+        Frame(boolean forward, boolean backward, boolean left, boolean right,
+              boolean jump, boolean sneak, boolean sprint, float yaw, float pitch) {
+            this.forward = forward;
+            this.backward = backward;
+            this.left = left;
+            this.right = right;
+            this.jump = jump;
+            this.sneak = sneak;
+            this.sprint = sprint;
+            this.yaw = yaw;
+            this.pitch = pitch;
+        }
+    }
+
+    private final List<Frame> recorded = new ArrayList<>();
     private boolean wasRecording = false;
+    private boolean playing = false;
+    private int playIndex = 0;
+    private int repeatCount = 0;
+    private boolean lastKeyStatus = false;
 
     public MovementMacro() {
-        super(Categories.Movement, "movement-macro", "Records and replays movement.");
+        super(Categories.Movement, "movement-macro", "Record your movements and play them back on repeat.");
+    }
+
+    @Override
+    public void onActivate() {
+        playing = false;
+        playIndex = 0;
+        repeatCount = 0;
+        wasRecording = false;
+        lastKeyStatus = false;
+    }
+
+    @Override
+    public void onDeactivate() {
+        playing = false;
+        recordingSetting.set(false);
+        restoreInputs();
     }
 
     @EventHandler
-    private void onTick(TickEvent.Pre event) {
+    private void onTick(TickEvent.Post event) {
         if (mc.player == null) return;
 
-        boolean isRecording;
-
+        // --- Keybind Logic ---
+        boolean isKeyPressed = recordKey.get().isPressed();
+        
         if (useHoldMode.get()) {
-            isRecording = holdRecordKey.get().isPressed();
+            recordingSetting.set(isKeyPressed);
         } else {
-            if (recordToggleKey.get().isPressed()) {
+            // Toggle logic: only switch when the key is first pressed down
+            if (isKeyPressed && !lastKeyStatus) {
                 recordingSetting.set(!recordingSetting.get());
             }
-            isRecording = recordingSetting.get();
+        }
+        lastKeyStatus = isKeyPressed;
+
+        boolean isRecording = recordingSetting.get();
+
+        // --- Start Recording Logic ---
+        if (isRecording && !wasRecording) {
+            recorded.clear();
+            playing = false;
+            wasRecording = true;
+            mc.player.displayClientMessage(Component.literal("§c[Macro] §fRecording started!"), true);
         }
 
+        // --- Stop Recording Logic ---
+        if (!isRecording && wasRecording) {
+            wasRecording = false;
+            if (recorded.isEmpty()) {
+                mc.player.displayClientMessage(Component.literal("§c[Macro] §fNothing recorded!"), true);
+            } else {
+                mc.player.displayClientMessage(Component.literal("§a[Macro] §fRecorded §e" + recorded.size() + " §fticks! Playback starting..."), true);
+                playing = true;
+                playIndex = 0;
+                repeatCount = 0;
+            }
+        }
+
+        // --- Recording Action ---
         if (isRecording) {
-            recordFrame();
-            wasRecording = true;
+            var options = mc.options;
+            recorded.add(new Frame(
+                options.keyUp.isDown(),
+                options.keyDown.isDown(),
+                options.keyLeft.isDown(),
+                options.keyRight.isDown(),
+                options.keyJump.isDown(),
+                options.keyShift.isDown(),
+                options.keySprint.isDown(),
+                mc.player.getYRot(),
+                mc.player.getXRot()
+            ));
             return;
         }
 
-        if (!isRecording && wasRecording) {
-            playbackIndex = 0;
-            wasRecording = false;
+        // --- Playback Action ---
+        if (!playing || recorded.isEmpty()) return;
+
+        Frame frame = recorded.get(playIndex);
+        applyFrame(mc.player, frame);
+        playIndex++;
+
+        if (playIndex >= recorded.size()) {
+            playIndex = 0;
+            repeatCount++;
+
+            if (!loopSetting.get() && repeatCount >= repeatsSetting.get()) {
+                playing = false;
+                restoreInputs();
+                mc.player.displayClientMessage(Component.literal("§a[Macro] §fPlayback finished!"), true);
+            }
         }
-
-        if (!frames.isEmpty() && playbackIndex < frames.size()) {
-            playFrame(frames.get(playbackIndex));
-            playbackIndex++;
-        } else {
-            resetKeys();
-        }
     }
 
-    private void recordFrame() {
-        Options o = mc.options;
+    private void applyFrame(LocalPlayer player, Frame frame) {
+        var input = player.input;
+        if (input == null) return;
 
-        frames.add(new Frame(
-            o.keyForward.isPressed(),
-            o.keyBack.isPressed(),
-            o.keyLeft.isPressed(),
-            o.keyRight.isPressed(),
-            o.keyJump.isPressed(),
-            o.keySneak.isPressed(),
-            mc.player.isSprinting()
-        ));
+        input.pressingForward = frame.forward;
+        input.pressingBackward = frame.backward;
+        input.pressingLeft = frame.left;
+        input.pressingRight = frame.right;
+        input.jumping = frame.jump;
+        input.shiftKeyDown = frame.sneak;
+
+        input.forwardImpulse = frame.forward ? 1.0F : (frame.backward ? -1.0F : 0.0F);
+        input.leftImpulse = frame.left ? 1.0F : (frame.right ? -1.0F : 0.0F);
+        
+        player.setSprinting(frame.sprint);
+        player.setYRot(frame.yaw);
+        player.setXRot(frame.pitch);
     }
 
-    private void playFrame(Frame f) {
-        Options o = mc.options;
+    private void restoreInputs() {
+        if (mc.player == null || mc.player.input == null) return;
+        var input = mc.player.input;
 
-        o.keyForward.setPressed(f.forward);
-        o.keyBack.setPressed(f.backward);
-        o.keyLeft.setPressed(f.left);
-        o.keyRight.setPressed(f.right);
-
-        o.keyJump.setPressed(f.jump);
-        o.keySneak.setPressed(f.sneak);
-
-        mc.player.setSprinting(f.sprint);
-    }
-
-    private void resetKeys() {
-        Options o = mc.options;
-
-        o.keyForward.setPressed(false);
-        o.keyBack.setPressed(false);
-        o.keyLeft.setPressed(false);
-        o.keyRight.setPressed(false);
-
-        o.keyJump.setPressed(false);
-        o.keySneak.setPressed(false);
-
-        if (mc.player != null) mc.player.setSprinting(false);
-    }
-
-    private static class Frame {
-        boolean forward, backward, left, right;
-        boolean jump, sneak, sprint;
-
-        Frame(boolean f, boolean b, boolean l, boolean r, boolean j, boolean sn, boolean sp) {
-            forward = f;
-            backward = b;
-            left = l;
-            right = r;
-            jump = j;
-            sneak = sn;
-            sprint = sp;
-        }
+        input.pressingForward = false;
+        input.pressingBackward = false;
+        input.pressingLeft = false;
+        input.pressingRight = false;
+        input.jumping = false;
+        input.shiftKeyDown = false;
+        input.forwardImpulse = 0.0F;
+        input.leftImpulse = 0.0F;
     }
 }

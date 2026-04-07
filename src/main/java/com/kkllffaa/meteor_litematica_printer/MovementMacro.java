@@ -36,7 +36,6 @@ public class MovementMacro extends Module {
         .build()
     );
 
-    // Snapshot of one tick of inputs
     private static class Frame {
         boolean forward, backward, left, right, jump, sneak, sprint;
         float yaw, pitch;
@@ -91,7 +90,6 @@ public class MovementMacro extends Module {
 
         boolean isRecording = recordingSetting.get();
 
-        // Just started recording
         if (isRecording && !wasRecording) {
             recorded.clear();
             playing = false;
@@ -101,7 +99,6 @@ public class MovementMacro extends Module {
             );
         }
 
-        // Just stopped recording
         if (!isRecording && wasRecording) {
             wasRecording = false;
             if (recorded.isEmpty()) {
@@ -118,7 +115,6 @@ public class MovementMacro extends Module {
             repeatCount = 0;
         }
 
-        // Record current frame
         if (isRecording) {
             var options = mc.options;
             recorded.add(new Frame(
@@ -135,7 +131,6 @@ public class MovementMacro extends Module {
             return;
         }
 
-        // Playback
         if (!playing || recorded.isEmpty()) return;
 
         Frame frame = recorded.get(playIndex);
@@ -160,13 +155,17 @@ public class MovementMacro extends Module {
         var input = player.input;
         if (input == null) return;
 
-        // Updated for modern Mojang mappings
+        // Correct mappings for 1.21.4
         input.pressingForward = frame.forward;
-        input.pressingBack = frame.backward;
+        input.pressingBackward = frame.backward;
         input.pressingLeft = frame.left;
         input.pressingRight = frame.right;
         input.jumping = frame.jump;
-        input.sneaking = frame.sneak;
+        input.shiftKeyDown = frame.sneak;
+
+        // Impulse values are necessary for movement in 1.21+
+        input.forwardImpulse = frame.forward ? 1.0F : (frame.backward ? -1.0F : 0.0F);
+        input.leftImpulse = frame.left ? 1.0F : (frame.right ? -1.0F : 0.0F);
         
         player.setSprinting(frame.sprint);
         player.setYRot(frame.yaw);
@@ -175,13 +174,15 @@ public class MovementMacro extends Module {
 
     private void restoreInputs() {
         if (mc.player == null || mc.player.input == null) return;
-        
-        // Updated for modern Mojang mappings
-        mc.player.input.pressingForward = false;
-        mc.player.input.pressingBack = false;
-        mc.player.input.pressingLeft = false;
-        mc.player.input.pressingRight = false;
-        mc.player.input.jumping = false;
-        mc.player.input.sneaking = false;
+        var input = mc.player.input;
+
+        input.pressingForward = false;
+        input.pressingBackward = false;
+        input.pressingLeft = false;
+        input.pressingRight = false;
+        input.jumping = false;
+        input.shiftKeyDown = false;
+        input.forwardImpulse = 0.0F;
+        input.leftImpulse = 0.0F;
     }
 }

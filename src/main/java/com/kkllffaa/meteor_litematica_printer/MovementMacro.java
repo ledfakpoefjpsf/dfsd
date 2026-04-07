@@ -82,49 +82,49 @@ public class MovementMacro extends Module {
         }
     }
 
-    // ✅ RECORD
+    // ✅ RECORD - Using 1.21.4 field names
     private void recordFrame() {
         Options o = mc.options;
 
         frames.add(new Frame(
-            o.forward.isPressed(),
-            o.back.isPressed(),
-            o.left.isPressed(),
-            o.right.isPressed(),
-            o.jump.isPressed(),
-            o.sneak.isPressed(),
+            o.forwardKey.isPressed(),
+            o.backKey.isPressed(),
+            o.leftKey.isPressed(),
+            o.rightKey.isPressed(),
+            o.jumpKey.isPressed(),
+            o.sneakKey.isPressed(),
             mc.player.isSprinting()
         ));
     }
 
-    // ✅ PLAY
+    // ✅ PLAY - Using 1.21.4 field names
     private void playFrame(Frame f) {
         Options o = mc.options;
 
-        o.forward.setPressed(f.forward);
-        o.back.setPressed(f.backward);
-        o.left.setPressed(f.left);
-        o.right.setPressed(f.right);
+        o.forwardKey.setPressed(f.forward);
+        o.backKey.setPressed(f.backward);
+        o.leftKey.setPressed(f.left);
+        o.rightKey.setPressed(f.right);
 
-        o.jump.setPressed(f.jump);
-        o.sneak.setPressed(f.sneak);
+        o.jumpKey.setPressed(f.jump);
+        o.sneakKey.setPressed(f.sneak);
 
         mc.player.setSprinting(f.sprint);
     }
 
-    // ✅ RESET
+    // ✅ RESET - Using 1.21.4 field names
     private void resetKeys() {
         Options o = mc.options;
 
-        o.forward.setPressed(false);
-        o.back.setPressed(false);
-        o.left.setPressed(false);
-        o.right.setPressed(false);
+        o.forwardKey.setPressed(false);
+        o.backKey.setPressed(false);
+        o.leftKey.setPressed(false);
+        o.rightKey.setPressed(false);
 
-        o.jump.setPressed(false);
-        o.sneak.setPressed(false);
+        o.jumpKey.setPressed(false);
+        o.sneakKey.setPressed(false);
 
-        mc.player.setSprinting(false);
+        if (mc.player != null) mc.player.setSprinting(false);
     }
 
     private static class Frame {
